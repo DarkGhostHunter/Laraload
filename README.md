@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## Usage
 
-By default, this package constantly recreates your preload script each 500 requests in `storage/app/preload.php`. That's it. But you want the details, don't you?
+By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
 
 1. A global terminable middleware calls a custom "Condition" class after the response is sent to the browser.
 2. The Condition evaluates if the script should be generated.
