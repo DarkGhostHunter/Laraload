@@ -1,8 +1,9 @@
 <?php
 
-namespace DarkGhostHunter\Laraload\Tests;
+namespace Tests;
 
 use Orchestra\Testbench\TestCase;
+use Tests\Stubs\ConditionCallable;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Event;
@@ -11,7 +12,6 @@ use DarkGhostHunter\Preloader\Preloader;
 use DarkGhostHunter\Laraload\LaraloadServiceProvider;
 use DarkGhostHunter\Laraload\Conditions\CountRequests;
 use DarkGhostHunter\Laraload\Events\PreloadCalledEvent;
-use DarkGhostHunter\Laraload\Tests\Stubs\ConditionCallable;
 use DarkGhostHunter\Laraload\Http\Middleware\LaraloadMiddleware;
 
 class PackageTest extends TestCase
@@ -23,13 +23,13 @@ class PackageTest extends TestCase
 
     public function testPublishesConfig()
     {
-        $this->artisan('vendor:publish',[
-            '--provider' => 'DarkGhostHunter\Laraload\LaraloadServiceProvider'
+        $this->artisan('vendor:publish', [
+            '--provider' => 'DarkGhostHunter\Laraload\LaraloadServiceProvider',
         ])
             ->execute();
 
         $this->assertFileExists(base_path('config/laraload.php'));
-        $this->assertFileEquals(base_path('config/laraload.php'), __DIR__. '/../config/laraload.php');
+        $this->assertFileEquals(base_path('config/laraload.php'), __DIR__ . '/../config/laraload.php');
 
         unlink(base_path('config/laraload.php'));
     }
@@ -132,8 +132,8 @@ class PackageTest extends TestCase
 
         $this->app->make('config')->set(
             'laraload.condition', [
-                ConditionCallable::class . '@handle', ['foo' => 'qux']
-            ]);
+            ConditionCallable::class . '@handle', ['foo' => 'qux'],
+        ]);
 
         Route::get('/test', function () {
             return 'ok';
@@ -161,7 +161,7 @@ class PackageTest extends TestCase
         $this->app->instance('env', 'production');
 
         $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [600, 'test_key']
+            CountRequests::class, [600, 'test_key'],
         ]);
 
         Route::get('/test', function () {
@@ -182,7 +182,7 @@ class PackageTest extends TestCase
         $this->app->instance('env', 'production');
 
         $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key']
+            CountRequests::class, [1, 'test_key'],
         ]);
 
         Route::get('/test', function () {
@@ -224,7 +224,7 @@ class PackageTest extends TestCase
         $this->app->instance('env', 'production');
 
         $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key']
+            CountRequests::class, [1, 'test_key'],
         ]);
 
         Route::get('/test', function () {

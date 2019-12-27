@@ -32,7 +32,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DarkGhostHunter\\Laraload\\Tests\\": "tests"
+            "Tests\\": "tests"
         }
     },
     "scripts": {
