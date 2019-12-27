@@ -8,6 +8,8 @@ class ConditionCallable
 
     public function handle($foo = 'bar')
     {
-        return static::$called = $foo;
+        static::$called = $foo;
+
+        return true;
     }
 }

@@ -78,6 +78,7 @@ class PackageTest extends TestCase
     public function testReachesCallable()
     {
         $condition = $this->mock(CountRequests::class);
+        $laraload = $this->mock(Laraload::class);
 
         $this->app->instance('env', 'production');
 
@@ -85,7 +86,10 @@ class PackageTest extends TestCase
             return 'ok';
         });
 
-        $condition->shouldReceive('__invoke');
+        $condition->shouldReceive('__invoke')
+            ->andReturnTrue();
+        $laraload->shouldReceive('generate')
+            ->andReturnTrue();
 
         $this->get('/test')->assertSee('ok');
 
@@ -94,6 +98,11 @@ class PackageTest extends TestCase
 
     public function testCallableWithMethod()
     {
+        $laraload = $this->mock(Laraload::class);
+
+        $laraload->shouldReceive('generate')
+            ->andReturnTrue();
+
         $this->app->instance('env', 'production');
 
         $this->app->make('config')->set(
@@ -107,13 +116,18 @@ class PackageTest extends TestCase
 
         $this->get('/test')->assertSee('ok');
 
-        $this->app->instance('env', 'testing');
-
         $this->assertEquals('bar', ConditionCallable::$called);
+
+        $this->app->instance('env', 'testing');
     }
 
     public function testCallableWithMethodAndParameters()
     {
+        $laraload = $this->mock(Laraload::class);
+
+        $laraload->shouldReceive('generate')
+            ->andReturnTrue();
+
         $this->app->instance('env', 'production');
 
         $this->app->make('config')->set(
@@ -135,8 +149,14 @@ class PackageTest extends TestCase
     public function testConditionWorks()
     {
         $condition = $this->mock(CountRequests::class);
+        $laraload = $this->mock(Laraload::class);
 
-        $condition->shouldReceive('__invoke')->with(600, 'test_key');
+        $laraload->shouldReceive('generate')
+            ->andReturnTrue();
+
+        $condition->shouldReceive('__invoke')
+            ->with(600, 'test_key')
+            ->andReturnTrue();
 
         $this->app->instance('env', 'production');
 
