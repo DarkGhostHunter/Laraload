@@ -1,0 +1,52 @@
+{
+    "name": "darkghosthunter/laraload",
+    "description": "Effortlessly make a Preload script for your Laravel application.",
+    "keywords": [
+        "darkghosthunter",
+        "laraload"
+    ],
+    "homepage": "https://github.com/darkghosthunter/laraload",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Italo Israel Baeza Cabrera",
+            "email": "darkghosthunter@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "illuminate/support": "6.*",
+        "illuminate/contracts": "6.*",
+        "darkghosthunter/preloader": "1.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "4.*",
+        "phpunit/phpunit": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "DarkGhostHunter\\Laraload\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DarkGhostHunter\\Laraload\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DarkGhostHunter\\Laraload\\LaraloadServiceProvider"
+            ]
+        }
+    }
+}
