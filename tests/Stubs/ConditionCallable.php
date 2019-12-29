@@ -1,6 +1,6 @@
 <?php
 
-namespace DarkGhostHunter\Laraload\Tests\Stubs;
+namespace Tests\Stubs;
 
 class ConditionCallable
 {
