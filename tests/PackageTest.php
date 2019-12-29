@@ -239,4 +239,39 @@ class PackageTest extends TestCase
             return $event->success === false;
         });
     }
+
+    public function testWorksOnlyOnSuccessCodes()
+    {
+        $laraload = $this->mock(Laraload::class);
+
+        $laraload->shouldReceive('generate')->times(2);
+
+        $this->app->instance('env', 'production');
+
+        $this->app->make('config')->set('laraload.condition', [
+            CountRequests::class, [1, 'test_key'],
+        ]);
+
+        $i = rand(100, 200);
+        Route::get('/100', fn() => response('ok', $i));
+        $this->get('/100')->assertStatus($i);
+
+        $i = rand(200, 300);
+        Route::get('/200', fn() => response('ok', $i));
+        $this->get('/200')->assertStatus($i);
+
+        $i = rand(300, 400);
+        Route::get('/300', fn() => response('ok', $i));
+        $this->get('/300')->assertStatus($i);
+
+        $i = rand(400, 500);
+        Route::get('/400', fn() => response('ok', $i));
+        $this->get('/400')->assertStatus($i);
+
+        $i = rand(500, 600);
+        Route::get('/500', fn() => response('ok', $i));
+        $this->get('/500')->assertStatus($i);
+
+        $this->app->instance('env', 'testing');
+    }
 }

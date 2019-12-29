@@ -29,8 +29,9 @@ composer require darkghosthunter/laraload
 
 By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
 
-1. A global terminable middleware calls a custom "Condition" class after the response is sent to the browser.
-2. The Condition evaluates if the script should be generated.
+1. A global terminable middleware checks if the Response code is between 200 and 400.
+2. Then it calls a custom *Condition* class.
+2. The *Condition* evaluates if the script should be generated.
 3. If the Condition returns `true`, the script is generated.
 4. A `PreloadCalledEvent` is called with the generation status.
 
@@ -142,11 +143,11 @@ Excluded files **will** count for the memory limit, meaning, these will free the
 
 * Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?
 
-Opcache usually is not enabled when using PHP CLI. You have to let the live application generate the list automatically _on demand_.
+Opcache is not enabled when using PHP CLI. You must let the live application generate the list automatically _on demand_.
 
 * Does this excludes the package itself from the list?
 
-No, since they're needed to trigger the Preloader itself without hindering performance. But you do you.
+Only the underlying Preloader package. The files in this one are needed to trigger the Preloader itself without hindering performance. But you do you.
 
 * How the list is created?
 
@@ -164,13 +165,13 @@ Yes, but including all the files of your application may have diminishing return
 
 Yes, but remember that Closures cannot be serialized when caching the configuration using `config:cache` or `optimize`. It's always recommended to use your class or function name.
 
-* Can I deactivate the middleware?
+* Can I deactivate the middleware? Or check only XXX status?
 
 Nope. If you are looking for total control, [use directly the Preloader package](https://github.com/DarkGhostHunter/Preloader/).
 
 * How can I know when a Preload script is successfully generated? 
 
-When the Preload script is called, you will receive a `PreloadCalledEvent` instance with the compilation status. You can [add a Listener](https://laravel.com/docs/events#registering-events-and-listeners) to dispatch an email or a Slack notification.
+When the Preload script is called, you will receive a `PreloadCalledEvent` instance with the compilation status (`true` on success, `false` on failure). You can [add a Listener](https://laravel.com/docs/events#registering-events-and-listeners) to dispatch an email or a Slack notification.
 
 ## License
 

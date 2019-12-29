@@ -55,13 +55,20 @@ class LaraloadMiddleware
      */
     public function terminate($request, $response)
     {
-        if ($this->app->runningUnitTests() || ! $response->isSuccessful()) {
-            return;
-        }
-
-        if ($this->conditionIsTrue()) {
+        if ($this->responseIsFine($response) && $this->conditionIsTrue()) {
             app(Laraload::class)->generate();
         }
+    }
+
+    /**
+     * Returns if the Response is success or a redirection
+     *
+     * @param  \Symfony\Component\HttpFoundation\Response $response
+     * @return bool
+     */
+    protected function responseIsFine($response)
+    {
+        return ! $this->app->runningUnitTests() && ($response->isSuccessful() || $response->isRedirection());
     }
 
     /**
