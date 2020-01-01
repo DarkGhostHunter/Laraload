@@ -4,7 +4,6 @@ namespace DarkGhostHunter\Laraload;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
-use DarkGhostHunter\Preloader\Preloader;
 use DarkGhostHunter\Laraload\Http\Middleware\LaraloadMiddleware;
 
 class LaraloadServiceProvider extends ServiceProvider
@@ -27,7 +26,10 @@ class LaraloadServiceProvider extends ServiceProvider
      */
     public function boot(Kernel $kernel)
     {
-        $kernel->pushMiddleware(LaraloadMiddleware::class);
+        // We will only register the middleware if not Running Unit Tests
+        if (! $this->app->runningUnitTests()) {
+            $kernel->pushMiddleware(LaraloadMiddleware::class);
+        }
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

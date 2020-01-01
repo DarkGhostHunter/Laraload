@@ -169,6 +169,10 @@ Yes, but remember that Closures cannot be serialized when caching the configurat
 
 Nope. If you are looking for total control, [use directly the Preloader package](https://github.com/DarkGhostHunter/Preloader/).
 
+* Does the middleware works on testing?
+
+Nope. The middleware is not registered if the application is running under Unit Testing environment.
+
 * How can I know when a Preload script is successfully generated? 
 
 When the Preload script is called, you will receive a `PreloadCalledEvent` instance with the compilation status (`true` on success, `false` on failure). You can [add a Listener](https://laravel.com/docs/events#registering-events-and-listeners) to dispatch an email or a Slack notification.
