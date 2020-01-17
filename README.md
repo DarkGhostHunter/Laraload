@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code fast.
+Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code fast. For that to work, it needs to read a PHP script that uploads the files, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`.
 
