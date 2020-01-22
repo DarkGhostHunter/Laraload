@@ -61,14 +61,16 @@ class LaraloadMiddleware
     }
 
     /**
-     * Returns if the Response is success or a redirection
+     * Returns if the Response is anything but an error or an invalid response
      *
      * @param  \Symfony\Component\HttpFoundation\Response $response
      * @return bool
      */
     protected function responseIsFine($response)
     {
-        return ! $this->app->runningUnitTests() && ($response->isSuccessful() || $response->isRedirection());
+        $status = $response->getStatusCode();
+
+        return $status > 100 && $status < 400;
     }
 
     /**
@@ -83,7 +85,7 @@ class LaraloadMiddleware
 
         return strpos($condition[0], '@')
             ? $this->app->call(... $condition)
-            : $this->app->make($condition[0])(...$condition[1] ?? []);
+            : $this->app->make($condition[0])(...array_values($condition[1] ?? []));
     }
 
 }

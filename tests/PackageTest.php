@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Exception;
 use Orchestra\Testbench\TestCase;
 use Tests\Stubs\ConditionCallable;
 use Illuminate\Contracts\Http\Kernel;
@@ -34,45 +35,28 @@ class PackageTest extends TestCase
         unlink(base_path('config/laraload.php'));
     }
 
-    public function testRegisterTerminableMiddleware()
+    public function testDoesntRegisterTerminableMiddlewareInTesting()
     {
-        $this->assertTrue(
+        $this->assertFalse(
             $this->app[Kernel::class]->hasMiddleware(LaraloadMiddleware::class)
         );
-    }
-
-    public function testDoesntWorkInTesting()
-    {
-        $condition = $this->mock(CountRequests::class);
-
-        $condition->shouldNotReceive('__invoke');
-
-        Route::get('/test', function () {
-            return 'ok';
-        });
-
-        $condition->shouldReceive('__invoke');
-
-        $this->get('/test')->assertSee('ok');
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testDoesntWorkWithErrorResponse()
     {
         $condition = $this->mock(CountRequests::class);
 
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
         $condition->shouldNotReceive('__invoke');
 
         Route::get('/test', function () {
-            throw new \Exception;
+            throw new Exception;
         });
 
         $condition->shouldReceive('__invoke');
 
         $this->get('/test')->assertStatus(500);
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testReachesCallable()
@@ -80,7 +64,7 @@ class PackageTest extends TestCase
         $condition = $this->mock(CountRequests::class);
         $laraload = $this->mock(Laraload::class);
 
-        $this->app->instance('env', 'production');
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
         Route::get('/test', function () {
             return 'ok';
@@ -92,18 +76,16 @@ class PackageTest extends TestCase
             ->andReturnTrue();
 
         $this->get('/test')->assertSee('ok');
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testCallableWithMethod()
     {
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
         $laraload = $this->mock(Laraload::class);
 
         $laraload->shouldReceive('generate')
             ->andReturnTrue();
-
-        $this->app->instance('env', 'production');
 
         $this->app->make('config')->set(
             'laraload.condition',
@@ -117,18 +99,16 @@ class PackageTest extends TestCase
         $this->get('/test')->assertSee('ok');
 
         $this->assertEquals('bar', ConditionCallable::$called);
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testCallableWithMethodAndParameters()
     {
         $laraload = $this->mock(Laraload::class);
 
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
         $laraload->shouldReceive('generate')
             ->andReturnTrue();
-
-        $this->app->instance('env', 'production');
 
         $this->app->make('config')->set(
             'laraload.condition', [
@@ -141,8 +121,6 @@ class PackageTest extends TestCase
 
         $this->get('/test')->assertSee('ok');
 
-        $this->app->instance('env', 'testing');
-
         $this->assertEquals('qux', ConditionCallable::$called);
     }
 
@@ -151,14 +129,14 @@ class PackageTest extends TestCase
         $condition = $this->mock(CountRequests::class);
         $laraload = $this->mock(Laraload::class);
 
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
         $laraload->shouldReceive('generate')
             ->andReturnTrue();
 
         $condition->shouldReceive('__invoke')
             ->with(600, 'test_key')
             ->andReturnTrue();
-
-        $this->app->instance('env', 'production');
 
         $this->app->make('config')->set('laraload.condition', [
             CountRequests::class, [600, 'test_key'],
@@ -169,17 +147,15 @@ class PackageTest extends TestCase
         });
 
         $this->get('/test')->assertSee('ok');
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testConditionsCallsLaraload()
     {
         $laraload = $this->mock(Laraload::class);
 
-        $laraload->shouldReceive('generate');
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
-        $this->app->instance('env', 'production');
+        $laraload->shouldReceive('generate');
 
         $this->app->make('config')->set('laraload.condition', [
             CountRequests::class, [1, 'test_key'],
@@ -190,13 +166,13 @@ class PackageTest extends TestCase
         });
 
         $this->get('/test')->assertSee('ok');
-
-        $this->app->instance('env', 'testing');
     }
 
     public function testLaraloadGeneratesScript()
     {
         $event = Event::fake();
+
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
         $laraload = $this->mock(Preloader::class);
 
@@ -221,8 +197,6 @@ class PackageTest extends TestCase
         $laraload->shouldReceive('generate')
             ->andReturnFalse();
 
-        $this->app->instance('env', 'production');
-
         $this->app->make('config')->set('laraload.condition', [
             CountRequests::class, [1, 'test_key'],
         ]);
@@ -233,20 +207,18 @@ class PackageTest extends TestCase
 
         $this->get('/test')->assertSee('ok');
 
-        $this->app->instance('env', 'testing');
-
         $event->assertDispatched(PreloadCalledEvent::class, function ($event) {
             return $event->success === false;
         });
     }
 
-    public function testWorksOnlyOnSuccessCodes()
+    public function testWorksOnNonErrorCodes()
     {
         $laraload = $this->mock(Laraload::class);
 
-        $laraload->shouldReceive('generate')->times(2);
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
-        $this->app->instance('env', 'production');
+        $laraload->shouldReceive('generate')->times(3);
 
         $this->app->make('config')->set('laraload.condition', [
             CountRequests::class, [1, 'test_key'],
@@ -271,7 +243,5 @@ class PackageTest extends TestCase
         $i = rand(500, 600);
         Route::get('/500', fn() => response('ok', $i));
         $this->get('/500')->assertStatus($i);
-
-        $this->app->instance('env', 'testing');
     }
 }

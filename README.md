@@ -25,6 +25,12 @@ Call composer and you're done.
 composer require darkghosthunter/laraload
 ```
 
+## What is Preloading? What does this?
+
+Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code fast. For that to work, it needs to read a PHP script that uploads the files, at startup.
+
+This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`.
+
 ## Usage
 
 By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
@@ -168,6 +174,10 @@ Yes, but remember that Closures cannot be serialized when caching the configurat
 * Can I deactivate the middleware? Or check only XXX status?
 
 Nope. If you are looking for total control, [use directly the Preloader package](https://github.com/DarkGhostHunter/Preloader/).
+
+* Does the middleware works on testing?
+
+Nope. The middleware is not registered if the application is running under Unit Testing environment.
 
 * How can I know when a Preload script is successfully generated? 
 
