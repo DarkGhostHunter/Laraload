@@ -85,7 +85,7 @@ class LaraloadMiddleware
 
         return strpos($condition[0], '@')
             ? $this->app->call(... $condition)
-            : $this->app->make($condition[0])(...$condition[1] ?? []);
+            : $this->app->make($condition[0])(...array_values($condition[1] ?? []));
     }
 
 }
