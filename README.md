@@ -123,6 +123,22 @@ return [
 ];
 ```
 
+#### Method
+
+Opcache allows to preload files using `require_once`, and both `include_once` and `opcache_compile_file()`.
+
+Requiring a file will execute it, resolving all the links (parent classes, traits, interfaces, etc) and also compiling them, while `opcache_compile_file()` will not. The latter may output warnings.
+
+Depending on your application, you may want to use one over the other. 
+
+```php
+<?php
+
+return [
+    'method' => 'compile',
+];
+```
+
 #### Include & Exclude
 
 You can include and exclude particular files from the Preload script. Each item in the list is passed to the `glob()` function.
