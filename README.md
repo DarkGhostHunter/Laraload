@@ -125,9 +125,9 @@ return [
 
 #### Method
 
-Opcache allows to preload files using `require_once`, and both `include_once` and `opcache_compile_file()`.
+Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
 
-Requiring a file will execute it, resolving all the links (parent classes, traits, interfaces, etc) and also compiling them, while `opcache_compile_file()` will not. The latter may output warnings.
+Requiring a file will *execute* it, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, while `opcache_compile_file()` will only compile. The latter may output warnings since some links may not be preloaded if they're are out of the list.
 
 Depending on your application, you may want to use one over the other. 
 

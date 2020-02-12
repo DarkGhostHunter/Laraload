@@ -63,7 +63,7 @@ return [
     | them), and `opcache_compile_file`. Depending on your app, you may want
     | one over the other depending on the link resolution to other files.
     |
-    | Supported: "require", "compile", "include"
+    | Supported: "require", "compile"
     |
     */
 

@@ -194,6 +194,9 @@ class PackageTest extends TestCase
         $laraload->shouldReceive('overwrite')
             ->with()
             ->andReturnSelf();
+        $laraload->shouldReceive('useRequire')
+            ->with()
+            ->andReturnSelf();
         $laraload->shouldReceive('generate')
             ->andReturnFalse();
 
@@ -210,6 +213,30 @@ class PackageTest extends TestCase
         $event->assertDispatched(PreloadCalledEvent::class, function ($event) {
             return $event->success === false;
         });
+    }
+
+    public function testUsesCompileInsteadOfRequire()
+    {
+        $preloader = $this->mock(Preloader::class);
+        $this->app->make('config')->set('laraload.method', 'compile');
+        $this->app->make('config')->set('laraload.condition', [
+            CountRequests::class, [1, 'test_key'],
+        ]);
+
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
+        $preloader->shouldReceive('autoload')->andReturnSelf();
+        $preloader->shouldReceive('output')->andReturnSelf();
+        $preloader->shouldReceive('memory')->andReturnSelf();
+        $preloader->shouldReceive('exclude')->andReturnSelf();
+        $preloader->shouldReceive('append')->andReturnSelf();
+        $preloader->shouldReceive('overwrite')->andReturnSelf();
+        $preloader->shouldReceive('useCompile')->andReturnSelf();
+        $preloader->shouldNotReceive('useRequire');
+        $preloader->shouldReceive('generate')->andReturnTrue();
+
+        Route::get('/test', fn() => response('ok'));
+        $this->get('/test')->assertStatus(200);
     }
 
     public function testWorksOnNonErrorCodes()
