@@ -123,6 +123,22 @@ return [
 ];
 ```
 
+#### Method
+
+Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
+
+Requiring a file will *execute* it, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, while `opcache_compile_file()` will only compile. The latter may output warnings since some links may not be preloaded if they're are out of the list.
+
+Depending on your application, you may want to use one over the other. 
+
+```php
+<?php
+
+return [
+    'method' => 'compile',
+];
+```
+
 #### Include & Exclude
 
 You can include and exclude particular files from the Preload script. Each item in the list is passed to the `glob()` function.
@@ -146,6 +162,12 @@ Included files won't count for the memory limit, meaning, these can exceed it.
 Excluded files **will** count for the memory limit, meaning, these will free their memory consumption from the list so other files can go in.
 
 ### FAQ
+
+* The package returns errors when I used it!
+  
+Check you're using PHP 7.4 (critical), and Opcache is enabled. Also, check your storage directory is writable.
+
+If you presume this is an error by the package, [open an issue](https://github.com/DarkGhostHunter/Laraload/issues/new) with full details. If it's a problem on the Preloader itself, [issue it there](https://github.com/DarkGhostHunter/Preloader/issues).
 
 * Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?
 

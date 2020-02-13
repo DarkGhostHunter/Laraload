@@ -56,6 +56,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Upload method
+    |--------------------------------------------------------------------------
+    |
+    | Opcache supports preloading files by using `require_once` (which executes
+    | them), and `opcache_compile_file`. Depending on your app, you may want
+    | one over the other depending on the link resolution to other files.
+    |
+    | Supported: "require", "compile"
+    |
+    */
+
+    'method' => 'require',
+
+    /*
+    |--------------------------------------------------------------------------
     | Included & Excluded files
     |--------------------------------------------------------------------------
     |
@@ -65,7 +80,11 @@ return [
     |
     */
 
-    'include' => [],
+    'include' => [
+        //
+    ],
 
-    'exclude' => [],
+    'exclude' => [
+        //
+    ],
 ];

@@ -50,15 +50,20 @@ class Laraload
      */
     public function generate()
     {
-        $status = $this->preloader
+        $preloader = $this->preloader
             ->autoload($this->config['autoload'])
             ->output($this->config['output'])
             ->memory($this->config['memory'])
             ->exclude($this->config['exclude'])
             ->append($this->config['include'])
-            ->overwrite()
-            ->generate();
+            ->overwrite();
 
-        $this->dispatcher->dispatch(new Events\PreloadCalledEvent($status));
+        if ($this->config['method'] === 'require') {
+            $preloader->useRequire();
+        } else {
+            $preloader->useCompile();
+        }
+
+        $this->dispatcher->dispatch(new Events\PreloadCalledEvent($preloader->generate()));
     }
 }
