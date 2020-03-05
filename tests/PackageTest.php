@@ -251,23 +251,23 @@ class PackageTest extends TestCase
             CountRequests::class, [1, 'test_key'],
         ]);
 
-        $i = rand(100, 200);
+        $i = rand(100, 199);
         Route::get('/100', fn() => response('ok', $i));
         $this->get('/100')->assertStatus($i);
 
-        $i = rand(200, 300);
+        $i = rand(200, 299);
         Route::get('/200', fn() => response('ok', $i));
         $this->get('/200')->assertStatus($i);
 
-        $i = rand(300, 400);
+        $i = rand(300, 399);
         Route::get('/300', fn() => response('ok', $i));
         $this->get('/300')->assertStatus($i);
 
-        $i = rand(400, 500);
+        $i = rand(400, 499);
         Route::get('/400', fn() => response('ok', $i));
         $this->get('/400')->assertStatus($i);
 
-        $i = rand(500, 600);
+        $i = rand(500, 599);
         Route::get('/500', fn() => response('ok', $i));
         $this->get('/500')->assertStatus($i);
     }

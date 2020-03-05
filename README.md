@@ -11,7 +11,7 @@ Effortlessly create a PHP 7.4 Preload script for your Laravel project.
 
 ## Requirements
 
-* Laravel 6.x
+* Laravel 6, or Laravel 7
 * PHP 7.4 or later
 * `ext-opcache`
 
@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code fast. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_. For that to work, it needs to read a PHP script that uploads the files, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`.
 
@@ -37,7 +37,7 @@ By default, this package constantly recreates your preload script each 500 reque
 
 1. A global terminable middleware checks if the Response code is between 200 and 400.
 2. Then it calls a custom *Condition* class.
-2. The *Condition* evaluates if the script should be generated.
+2. The *Condition* evaluates if the script should be generated or not.
 3. If the Condition returns `true`, the script is generated.
 4. A `PreloadCalledEvent` is called with the generation status.
 
@@ -61,6 +61,7 @@ return [
     'condition' => 'DarkGhostHunter\Laraload\Conditions\CountRequests',
     'output' => storage_path('preload.php'),
     'memory' => 32,
+    'method' => 'require',
     'include' => [],
     'exclude' => [],
 ];
