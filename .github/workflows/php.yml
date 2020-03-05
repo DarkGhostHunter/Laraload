@@ -11,9 +11,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.4.2]
+        php: [7.4]
         laravel: [7.*, 6.*]
-        dependency-version: [prefer-lowest, prefer-stable]
+        dependency-version: [prefer-stable]
         include:
           - laravel: 7.*
             testbench: 5.*
