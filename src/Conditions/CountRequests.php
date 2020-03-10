@@ -2,9 +2,8 @@
 
 namespace DarkGhostHunter\Laraload\Conditions;
 
-use DarkGhostHunter\Laraload\Laraload;
-use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Config\Repository as Config;
 
 class CountRequests
 {
@@ -23,30 +22,42 @@ class CountRequests
     protected Config $config;
 
     /**
+     * Number of hits to
+     *
+     * @var int
+     */
+    protected int $hits;
+
+    /**
+     * @var string
+     */
+    protected string $cacheKey;
+
+    /**
      * CountRequest constructor.
      *
-     * @param  \Illuminate\Contracts\Cache\Repository $cache
-     * @param  \Illuminate\Contracts\Config\Repository $config
+     * @param  \Illuminate\Contracts\Cache\Repository  $cache
+     * @param  int  $hits
+     * @param  string  $cacheKey
      */
-    public function __construct(Cache $cache, Config $config)
+    public function __construct(Cache $cache, int $hits = 500, string $cacheKey = 'laraload|request_hits')
     {
         $this->cache = $cache;
-        $this->config = $config;
+        $this->hits = $hits;
+        $this->cacheKey = $cacheKey;
     }
 
     /**
      * Recreates the Preload script each given number of requests.
      *
-     * @param  int $hits
-     * @param  string $cacheKey
      * @return bool
      */
-    public function __invoke(int $hits = 500, string $cacheKey = 'laraload|request_hits')
+    public function __invoke()
     {
         // Increment the count by one. If it doesn't exists, we will start with 1.
-        $count = $this->cache->increment($cacheKey);
+        $count = $this->cache->increment($this->cacheKey);
 
         // Each number of hits return true
-        return $count && $count % $hits === 0;
+        return $count && $count % $this->hits === 0;
     }
 }

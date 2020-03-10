@@ -4,6 +4,7 @@ namespace DarkGhostHunter\Laraload;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
+use DarkGhostHunter\Preloader\Preloader;
 use DarkGhostHunter\Laraload\Http\Middleware\LaraloadMiddleware;
 
 class LaraloadServiceProvider extends ServiceProvider
@@ -16,6 +17,9 @@ class LaraloadServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/laraload.php', 'laraload');
+
+        $this->app->singleton(Preloader::class, fn() => Preloader::make());
+        $this->app->singleton(Laraload::class);
     }
 
     /**

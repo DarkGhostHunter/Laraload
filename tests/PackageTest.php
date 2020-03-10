@@ -13,6 +13,7 @@ use DarkGhostHunter\Preloader\Preloader;
 use DarkGhostHunter\Laraload\LaraloadServiceProvider;
 use DarkGhostHunter\Laraload\Conditions\CountRequests;
 use DarkGhostHunter\Laraload\Events\PreloadCalledEvent;
+use DarkGhostHunter\Laraload\Facades\Laraload as LaraloadFacade;
 use DarkGhostHunter\Laraload\Http\Middleware\LaraloadMiddleware;
 
 class PackageTest extends TestCase
@@ -20,6 +21,13 @@ class PackageTest extends TestCase
     protected function getPackageProviders($app)
     {
         return [LaraloadServiceProvider::class];
+    }
+
+    protected function getPackageAliases($app)
+    {
+        return [
+            'Laraload' => LaraloadFacade::class
+        ];
     }
 
     public function testPublishesConfig()
@@ -87,10 +95,7 @@ class PackageTest extends TestCase
         $laraload->shouldReceive('generate')
             ->andReturnTrue();
 
-        $this->app->make('config')->set(
-            'laraload.condition',
-            ConditionCallable::class . '@handle'
-        );
+        $this->app->make('config')->set('laraload.condition', ConditionCallable::class . '@handle');
 
         Route::get('/test', function () {
             return 'ok';
@@ -98,7 +103,7 @@ class PackageTest extends TestCase
 
         $this->get('/test')->assertSee('ok');
 
-        $this->assertEquals('bar', ConditionCallable::$called);
+        $this->assertEquals(true, ConditionCallable::$called);
     }
 
     public function testCallableWithMethodAndParameters()
@@ -111,9 +116,7 @@ class PackageTest extends TestCase
             ->andReturnTrue();
 
         $this->app->make('config')->set(
-            'laraload.condition', [
-            ConditionCallable::class . '@handle', ['foo' => 'qux'],
-        ]);
+            'laraload.condition', ConditionCallable::class . '@handle');
 
         Route::get('/test', function () {
             return 'ok';
@@ -121,7 +124,7 @@ class PackageTest extends TestCase
 
         $this->get('/test')->assertSee('ok');
 
-        $this->assertEquals('qux', ConditionCallable::$called);
+        $this->assertTrue(ConditionCallable::$called);
     }
 
     public function testConditionWorks()
@@ -135,12 +138,10 @@ class PackageTest extends TestCase
             ->andReturnTrue();
 
         $condition->shouldReceive('__invoke')
-            ->with(600, 'test_key')
+            ->withNoArgs()
             ->andReturnTrue();
 
-        $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [600, 'test_key'],
-        ]);
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
 
         Route::get('/test', function () {
             return 'ok';
@@ -157,9 +158,7 @@ class PackageTest extends TestCase
 
         $laraload->shouldReceive('generate');
 
-        $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key'],
-        ]);
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
 
         Route::get('/test', function () {
             return 'ok';
@@ -174,35 +173,26 @@ class PackageTest extends TestCase
 
         $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
-        $laraload = $this->mock(Preloader::class);
+        $preload = $this->mock(Preloader::class);
 
-        $laraload->shouldReceive('autoload')
-            ->with(base_path('vendor/autoload.php'))
-            ->andReturnSelf();
-        $laraload->shouldReceive('output')
-            ->with(storage_path('preload.php'))
-            ->andReturnSelf();
-        $laraload->shouldReceive('memory')
+        $preload->shouldReceive('memoryLimit')
             ->with(32)
             ->andReturnSelf();
-        $laraload->shouldReceive('exclude')
+        $preload->shouldReceive('exclude')
             ->with([])
             ->andReturnSelf();
-        $laraload->shouldReceive('append')
+        $preload->shouldReceive('append')
             ->with([])
             ->andReturnSelf();
-        $laraload->shouldReceive('overwrite')
-            ->with()
-            ->andReturnSelf();
-        $laraload->shouldReceive('useRequire')
-            ->with()
-            ->andReturnSelf();
-        $laraload->shouldReceive('generate')
-            ->andReturnFalse();
+        $preload->shouldReceive('writeTo')
+            ->with(config('laraload.output'))
+            ->andReturnTrue();
 
-        $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key'],
-        ]);
+        $this->app->when(CountRequests::class)
+            ->needs('$hits')
+            ->give(1);
+
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
 
         Route::get('/test', function () {
             return 'ok';
@@ -211,29 +201,52 @@ class PackageTest extends TestCase
         $this->get('/test')->assertSee('ok');
 
         $event->assertDispatched(PreloadCalledEvent::class, function ($event) {
-            return $event->success === false;
+            return $event->success;
         });
     }
 
-    public function testUsesCompileInsteadOfRequire()
+    public function testUsesRequireInsteadOfCompile()
     {
+        $this->app->when(CountRequests::class)
+            ->needs('$hits')
+            ->give(1);
+
+        $this->app->make('config')->set('laraload.use_require', true);
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
+
         $preloader = $this->mock(Preloader::class);
-        $this->app->make('config')->set('laraload.method', 'compile');
-        $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key'],
-        ]);
+
+        $preloader->shouldReceive('memoryLimit')->andReturnSelf();
+        $preloader->shouldReceive('exclude')->andReturnSelf();
+        $preloader->shouldReceive('append')->andReturnSelf();
+        $preloader->shouldReceive('useRequire')->with(config('laraload.autoload'))->andReturnSelf();
+        $preloader->shouldReceive('writeTo')->with(config('laraload.output'))->andReturnTrue();
 
         $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
-        $preloader->shouldReceive('autoload')->andReturnSelf();
-        $preloader->shouldReceive('output')->andReturnSelf();
-        $preloader->shouldReceive('memory')->andReturnSelf();
-        $preloader->shouldReceive('exclude')->andReturnSelf();
-        $preloader->shouldReceive('append')->andReturnSelf();
-        $preloader->shouldReceive('overwrite')->andReturnSelf();
-        $preloader->shouldReceive('useCompile')->andReturnSelf();
-        $preloader->shouldNotReceive('useRequire');
-        $preloader->shouldReceive('generate')->andReturnTrue();
+        Route::get('/test', fn() => response('ok'));
+        $this->get('/test')->assertStatus(200);
+    }
+
+    public function testReceivesAppendedAndExcludedFiles()
+    {
+        $this->app->when(CountRequests::class)
+            ->needs('$hits')
+            ->give(1);
+
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
+
+        $preloader = $this->mock(Preloader::class);
+
+        $preloader->shouldReceive('memoryLimit')->andReturnSelf();
+        $preloader->shouldReceive('exclude')->with('foo')->andReturnSelf();
+        $preloader->shouldReceive('append')->with('bar')->andReturnSelf();
+        $preloader->shouldReceive('writeTo')->with(config('laraload.output'))->andReturnTrue();
+
+        LaraloadFacade::exclude('foo');
+        LaraloadFacade::append('bar');
+
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
         Route::get('/test', fn() => response('ok'));
         $this->get('/test')->assertStatus(200);
@@ -243,13 +256,13 @@ class PackageTest extends TestCase
     {
         $laraload = $this->mock(Laraload::class);
 
-        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
-
+        $this->app->when(CountRequests::class)
+            ->needs('$hits')
+            ->give(1);
         $laraload->shouldReceive('generate')->times(3);
 
-        $this->app->make('config')->set('laraload.condition', [
-            CountRequests::class, [1, 'test_key'],
-        ]);
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
 
         $i = rand(100, 199);
         Route::get('/100', fn() => response('ok', $i));
@@ -270,5 +283,11 @@ class PackageTest extends TestCase
         $i = rand(500, 599);
         Route::get('/500', fn() => response('ok', $i));
         $this->get('/500')->assertStatus($i);
+    }
+
+    protected function tearDown() : void
+    {
+        parent::tearDown();
+        ConditionCallable::$called = false;
     }
 }

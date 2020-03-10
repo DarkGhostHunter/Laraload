@@ -16,13 +16,15 @@
         }
     ],
     "require": {
-        "php": "^7.4",
-        "illuminate/support": "6.*|7.*",
-        "illuminate/contracts": "6.*|7.*",
-        "darkghosthunter/preloader": "^1.1.3"
+        "php": "^7.4.3",
+        "illuminate/support": "^7.0",
+        "illuminate/contracts": "^7.0",
+        "darkghosthunter/preloader": "^2.0",
+        "symfony/finder": "^5.0"
     },
     "require-dev": {
-        "orchestra/testbench": ">4.0|5.*"
+        "orchestra/testbench": "^5.0",
+        "orchestra/canvas": "^5.0"
     },
     "autoload": {
         "psr-4": {
@@ -45,7 +47,10 @@
         "laravel": {
             "providers": [
                 "DarkGhostHunter\\Laraload\\LaraloadServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Laraload": "DarkGhostHunter\\Laraload\\Facades\\Laraload"
+            }
         }
     }
 }

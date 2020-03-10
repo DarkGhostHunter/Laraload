@@ -14,7 +14,7 @@ class PreloadCalledEvent
     /**
      * PreloadCalledEvent constructor.
      *
-     * @param  bool $success
+     * @param  bool  $success
      */
     public function __construct(bool $success)
     {

@@ -4,11 +4,11 @@ namespace Tests\Stubs;
 
 class ConditionCallable
 {
-    public static $called;
+    public static bool $called = false;
 
-    public function handle($foo = 'bar')
+    public function handle()
     {
-        static::$called = $foo;
+        static::$called = true;
 
         return true;
     }
