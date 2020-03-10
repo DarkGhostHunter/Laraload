@@ -4,19 +4,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Autoloader location
-    |--------------------------------------------------------------------------
-    |
-    | The autoloader location. By default, the autoloader is located inside the
-    | "vendor" directory on the root project path. Some projects may have a
-    | different path, which you can override here if it's not standard.
-    |
-    */
-
-    'autoload' => base_path('vendor/autoload.php'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Condition logic
     |--------------------------------------------------------------------------
     |
@@ -60,31 +47,30 @@ return [
     |--------------------------------------------------------------------------
     |
     | Opcache supports preloading files by using `require_once` (which executes
-    | them), and `opcache_compile_file`. Depending on your app, you may want
-    | one over the other depending on the link resolution to other files.
-    |
-    | Supported: "require", "compile"
+    | and resolves each file link), and `opcache_compile_file` (which not). If
+    | you want to use require ensure the Composer Autoloader path is correct.
     |
     */
 
-    'method' => 'require',
+    'use_require' => false,
+    'autoload'    => base_path('vendor/autoload.php'),
 
     /*
     |--------------------------------------------------------------------------
-    | Included & Excluded files
+    | Appended & Excluded directories
     |--------------------------------------------------------------------------
     |
-    | You can include or exclude files in the Preload script as you wish. The
-    | included files won't count to the memory limit, but the excluded files
+    | You can include or exclude directories in the Preload list as you wish.
+    | The included files won't count to the memory limit, but the excluded
     | will subtract themselves from the memory limit of the overall list.
     |
     */
 
-    'include' => [
-        //
+    'append' => [
+        // 'path/to/directory'
     ],
 
     'exclude' => [
-        //
+        // 'path/to/directory'
     ],
 ];

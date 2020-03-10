@@ -12,7 +12,7 @@ Effortlessly create a PHP 7.4 Preload script for your Laravel project.
 ## Requirements
 
 * Laravel 6, or Laravel 7
-* PHP 7.4 or later
+* PHP 7.4.3 or later
 * `ext-opcache`
 
 > The Opcache extension is not enforced by the package. Just be sure to enable it in your project's PHP main process.
@@ -27,18 +27,21 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
 
-This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`.
+This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
+
+```ini
+opcache.preload = 'www/app/storage/preload.php';
+```
 
 ## Usage
 
 By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
 
-1. A global terminable middleware checks if the Response code is between 200 and 400.
+1. A global terminable middleware checks for non-error response.
 2. Then it calls a custom *Condition* class.
-2. The *Condition* evaluates if the script should be generated or not.
-3. If the Condition returns `true`, the script is generated.
+3. If the *Condition* evaluates to `true`, the script is generated.
 4. A `PreloadCalledEvent` is called with the generation status.
 
 ## Configuration
@@ -57,25 +60,11 @@ Let's check config array:
 <?php
 
 return [
-    'autoload' => base_path('vendor/autoload.php'),
-    'condition' => 'DarkGhostHunter\Laraload\Conditions\CountRequests',
-    'output' => storage_path('preload.php'),
+    'condition' => \DarkGhostHunter\Laraload\Conditions\CountRequests::class,
+    'output' =>  storage_path('preload.php'),
     'memory' => 32,
-    'method' => 'require',
-    'include' => [],
-    'exclude' => [],
-];
-```
-
-#### Autoload
-
-Most of Laravel applications will have their Composer Autoload file in `vendor/autoload.php`. You can override this with your own absolute path:
-
-```php
-<?php
-
-return [
-    'autoload' => '/path/to/my/vendor/autoload.php',
+    'use_require' => false,
+    'autoload' => base_path('vendor/autoload.php'),
 ];
 ```
 
@@ -83,25 +72,20 @@ return [
 
 This package comes with a _simple_ condition class that returns `true` every 500 requests, which triggers the script generation. 
 
-You can define your own callable as a condition to generate the Preload script. This will be called after the request is handled to the browser.
+You can define your own condition class to generate the Preload script. This will be called after the request is handled to the browser, and it will be resolved by the Service Container.
+
+The condition is called the same way as a Controller action: as an invokable class or using _Class@action_ notation.
 
 ```php
 <?php
 
 return [
-    'condition' => [ 
-        \DarkGhostHunter\Laraload\Conditions\CountRequests::class, [
-            'hits' => 1000,
-            'key' => 'custom_cache_key'
-        ],
-    ],
+    'condition' => 'App\MyCustomCondition@handle',
 ];
 ```
 
-Alternatively, you can issue any callable using `MyClass@method` notation, or an invokable class.
-
 #### Output
-
+ 
 By default, the script is saved in your storage path, but you can change the filename and path to save it inside the storage path, as long PHP has permissions to write on it.
 
 ```php
@@ -120,7 +104,7 @@ For most applications, 32MB is fine as a preload limit, but you may fine-tune it
 <?php
 
 return [
-    'memory' => 63.5,
+    'memory' => 64,
 ];
 ```
 
@@ -128,47 +112,59 @@ return [
 
 Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
 
-Requiring a file will *execute* it, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, while `opcache_compile_file()` will only compile. The latter may output warnings since some links may not be preloaded if they're are out of the list.
+From version 2.0, Laraload now uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings, but nothing critical. 
 
-Depending on your application, you may want to use one over the other. 
+Using `require_once` will execute all files, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
 
-```php
-<?php
-
-return [
-    'method' => 'compile',
-];
-```
-
-#### Include & Exclude
-
-You can include and exclude particular files from the Preload script. Each item in the list is passed to the `glob()` function.
+If you plan use `require_once`, ensure you have set the correct path to the Composer Autoloader, since it will be used to resolve classes, among other files.
 
 ```php
 <?php
 
 return [
-    'include' => [
-        '/very/important/files/*.php'
-    ],
-    'exclude' => [
-        '/not/so/very/important/file.php',
-        '/and/this/one/too/*.php'
-    ],
+    'use_require' => true,
+    'autoload' => base_path('vendor/autoload.php'),
 ];
 ```
 
-Included files won't count for the memory limit, meaning, these can exceed it. 
+### Include & Exclude directories
 
-Excluded files **will** count for the memory limit, meaning, these will free their memory consumption from the list so other files can go in.
+For better manageability, you can now append or exclude files from directories using the [Symfony Finder](https://symfony.com/doc/current/components/finder.html) , which is included in this package, to retrieve a list of files inside of them with better filtering options.
+
+To do so, add an `array` of directories, or register a callback receiving a Symfony Finder instance to further filter which files you want to append or exclude. You can do this in your App Service Provider by using the `Laravel` facade (or injecting Laraload).
+
+```php
+
+use Symfony\Component\Finder\Finder;
+use Illuminate\Support\ServiceProvider;
+use DarkGhostHunter\Laraload\Facades\Laraload;
+
+class AppServiceProvider extends ServiceProvider
+{
+    // ...
+    
+    public function boot()
+    {
+        Laraload::append(function (Finder $find) {
+            $find->in('www/app/vendor/name/package/src')->name('*.php');
+        });
+        
+        Laraload::exclude(function (Finder $find) {
+            $find->in('www/app/resources/views')->name('*.blade.php');
+        });
+    }
+}
+```
 
 ### FAQ
 
 * The package returns errors when I used it!
   
-Check you're using PHP 7.4 (critical), and Opcache is enabled. Also, check your storage directory is writable.
+Check you're using PHP 7.4.3 (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
-If you presume this is an error by the package, [open an issue](https://github.com/DarkGhostHunter/Laraload/issues/new) with full details. If it's a problem on the Preloader itself, [issue it there](https://github.com/DarkGhostHunter/Preloader/issues).
+As a safe-bet, you can use the safe preloader script in `DarkGhostHunter/Preloader/helpers/safe-preloader.php`.
+
+If you're sure this is an error by the package, [open an issue](https://github.com/DarkGhostHunter/Laraload/issues/new) with full details and stack trace. If it's a problem on the Preloader itself, [issue it there](https://github.com/DarkGhostHunter/Preloader/issues).
 
 * Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?
 
@@ -177,6 +173,10 @@ Opcache is not enabled when using PHP CLI. You must let the live application gen
 * Does this excludes the package itself from the list?
 
 Only the underlying Preloader package. The files in this one are needed to trigger the Preloader itself without hindering performance. But you do you.
+
+* I activated Laraload but my application still doesn't feel snappy. What's wrong?
+
+Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it.
 
 * How the list is created?
 
@@ -192,7 +192,7 @@ Yes, but including all the files of your application may have diminishing return
 
 * Can I use a Closure for my condition?
 
-Yes, but remember that Closures cannot be serialized when caching the configuration using `config:cache` or `optimize`. It's always recommended to use your class or function name.
+No, you must use your the default condition class or your own class.
 
 * Can I deactivate the middleware? Or check only XXX status?
 
@@ -205,6 +205,11 @@ Nope. The middleware is not registered if the application is running under Unit 
 * How can I know when a Preload script is successfully generated? 
 
 When the Preload script is called, you will receive a `PreloadCalledEvent` instance with the compilation status (`true` on success, `false` on failure). You can [add a Listener](https://laravel.com/docs/events#registering-events-and-listeners) to dispatch an email or a Slack notification.
+
+* Why now I need to use a callback to append/exclude files?
+
+This new version uses Preloader 2, which offers greater flexibility to handle files inside a directory. This approach is incompatible with just issuing file arrays, but is more convenient. Considering appending/excluding is for edge cases,
+it was decided to leave it as method calls.
 
 ## License
 

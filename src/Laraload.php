@@ -9,25 +9,39 @@ use Illuminate\Contracts\Config\Repository as Config;
 class Laraload
 {
     /**
-     * Configuration array
+     * Configuration array.
      *
      * @var array
      */
     protected array $config;
 
     /**
-     * Preloader instance
+     * Preloader instance.
      *
      * @var \DarkGhostHunter\Preloader\Preloader
      */
     protected Preloader $preloader;
 
     /**
-     * Event Dispatcher
+     * Event Dispatcher.
      *
      * @var \Illuminate\Contracts\Events\Dispatcher
      */
     protected Dispatcher $dispatcher;
+
+    /**
+     * Callback to use to append files.
+     *
+     * @var callable
+     */
+    protected $append = [];
+
+    /**
+     * Callback to use to exclude files.
+     *
+     * @var callable
+     */
+    protected $exclude = [];
 
     /**
      * Laraload constructor.
@@ -44,26 +58,45 @@ class Laraload
     }
 
     /**
-     * Generates a Script
+     * Registers a callback to use to append files to the Preloader.
      *
-     * @return void
+     * @param  array|string|callable  $append
+     */
+    public function append($append)
+    {
+        $this->append = $append;
+    }
+
+    /**
+     * Registers a callback to use to exclude files from the Preloader.
+     *
+     * @param  array|string|callable  $exclude
+     */
+    public function exclude($exclude)
+    {
+        $this->exclude = $exclude;
+    }
+
+    /**
+     * Generates the Preloader Script.
+     *
+     * @return bool
      */
     public function generate()
     {
         $preloader = $this->preloader
-            ->autoload($this->config['autoload'])
-            ->output($this->config['output'])
-            ->memory($this->config['memory'])
-            ->exclude($this->config['exclude'])
-            ->append($this->config['include'])
-            ->overwrite();
+            ->memoryLimit($this->config['memory'])
+            ->exclude($this->exclude)
+            ->append($this->append);
 
-        if ($this->config['method'] === 'require') {
-            $preloader->useRequire();
-        } else {
-            $preloader->useCompile();
+        if ($this->config['use_require']) {
+            $preloader->useRequire($this->config['autoload']);
         }
 
-        $this->dispatcher->dispatch(new Events\PreloadCalledEvent($preloader->generate()));
+        $this->dispatcher->dispatch(new Events\PreloadCalledEvent(
+            $result = $preloader->writeTo($this->config['output'])
+        ));
+
+        return $result;
     }
 }
