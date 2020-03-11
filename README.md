@@ -86,7 +86,7 @@ return [
 
 #### Output
  
-By default, the script is saved in your storage path, but you can change the filename and path to save it inside the storage path, as long PHP has permissions to write on it.
+By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it.
 
 ```php
 <?php
@@ -129,7 +129,7 @@ return [
 
 ### Include & Exclude directories
 
-For better manageability, you can now append or exclude files from directories using the [Symfony Finder](https://symfony.com/doc/current/components/finder.html) , which is included in this package, to retrieve a list of files inside of them with better filtering options.
+For better manageability, you can now append or exclude files from directories using the [Symfony Finder](https://symfony.com/doc/current/components/finder.html), which is included in this package, to retrieve a list of files inside of them with better filtering options.
 
 To do so, add an `array` of directories, or register a callback receiving a Symfony Finder instance to further filter which files you want to append or exclude. You can do this in your App Service Provider by using the `Laravel` facade (or injecting Laraload).
 
@@ -162,7 +162,7 @@ class AppServiceProvider extends ServiceProvider
   
 Check you're using PHP 7.4.3 (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
-As a safe-bet, you can use the safe preloader script in `DarkGhostHunter/Preloader/helpers/safe-preloader.php`.
+As a safe-bet, you can use the safe preloader script in `darkghosthunter/preloader/helpers/safe-preloader.php` and debug the error.
 
 If you're sure this is an error by the package, [open an issue](https://github.com/DarkGhostHunter/Laraload/issues/new) with full details and stack trace. If it's a problem on the Preloader itself, [issue it there](https://github.com/DarkGhostHunter/Preloader/issues).
 
@@ -172,15 +172,17 @@ Opcache is not enabled when using PHP CLI. You must let the live application gen
 
 * Does this excludes the package itself from the list?
 
-Only the underlying Preloader package. The files in this one are needed to trigger the Preloader itself without hindering performance. But you do you.
+It does not: since the underlying Preloader package may be not heavily requested, it doesn't matter if its excluded or not. The files in Laraload are also not excluded from the list, since these areneede to trigger the Preloader itself without hindering performance. 
 
 * I activated Laraload but my application still doesn't feel snappy. What's wrong?
 
-Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it.
+Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it. This will take effect only at PHP process startup.
+
+If you still _feel_ your app is slow, remember to benchmark your app, check your database queries and API calls, and queue expensive logic, among other things.
 
 * How the list is created?
 
-Basically: the most hit files in descending order. Each file consumes memory, so the list is _soft-cut_ when the files reach that limit.
+Basically: the most hit files in descending order. Each file consumes memory, so the list is _soft-cut_ when the files reach a given memory limit (32MB by default).
 
 * You said "_soft-cut_", why is that?
 
@@ -192,7 +194,7 @@ Yes, but including all the files of your application may have diminishing return
 
 * Can I use a Closure for my condition?
 
-No, you must use your the default condition class or your own class.
+No, you must use your the default condition class or your own class, or use `Class@method` notation.
 
 * Can I deactivate the middleware? Or check only XXX status?
 
@@ -206,10 +208,11 @@ Nope. The middleware is not registered if the application is running under Unit 
 
 When the Preload script is called, you will receive a `PreloadCalledEvent` instance with the compilation status (`true` on success, `false` on failure). You can [add a Listener](https://laravel.com/docs/events#registering-events-and-listeners) to dispatch an email or a Slack notification.
 
-* Why now I need to use a callback to append/exclude files?
+If there is a bigger problem, your application logger will catch the exception.
 
-This new version uses Preloader 2, which offers greater flexibility to handle files inside a directory. This approach is incompatible with just issuing file arrays, but is more convenient. Considering appending/excluding is for edge cases,
-it was decided to leave it as method calls.
+* Why now I need to use a callback to append/exclude files, instead of a simple array of files?
+
+This new version uses Preloader 2, which offers greater flexibility to handle files inside a directory. This approach is incompatible with just issuing directly an array of files, but is more convenient in the long term. Considering that appending and excluding files mostly requires pin-point precision, it was decided to leave it as method calls for this kind of flexibility.
 
 ## License
 
