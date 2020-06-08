@@ -160,7 +160,7 @@ class AppServiceProvider extends ServiceProvider
 
 * The package returns errors when I used it!
   
-Check you're using PHP 7.4.3 (critical), and Opcache is enabled. Also, check your storage directory is writable.
+Check you're using latest PHP 7.4 version (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
 As a safe-bet, you can use the safe preloader script in `darkghosthunter/preloader/helpers/safe-preloader.php` and debug the error.
 
@@ -172,13 +172,13 @@ Opcache is not enabled when using PHP CLI. You must let the live application gen
 
 * Does this excludes the package itself from the list?
 
-It does not: since the underlying Preloader package may be not heavily requested, it doesn't matter if its excluded or not. The files in Laraload are also not excluded from the list, since these areneede to trigger the Preloader itself without hindering performance. 
+It does not: since the underlying Preloader package may be not heavily requested, it doesn't matter if its excluded or not. The files in Laraload are also not excluded from the list, since these are needed to trigger the Preloader itself without hindering performance. 
 
-* I activated Laraload but my application still doesn't feel snappy. What's wrong?
+* I activated Laraload but my application still doesn't feel _fast_. What's wrong?
 
 Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it. This will take effect only at PHP process startup.
 
-If you still _feel_ your app is slow, remember to benchmark your app, check your database queries and API calls, and queue expensive logic, among other things.
+If you still _feel_ your app is slow, remember to benchmark your app, cache your config and views, check your database queries and API calls, and queue expensive logic, among other things.
 
 * How the list is created?
 
@@ -186,11 +186,11 @@ Basically: the most hit files in descending order. Each file consumes memory, so
 
 * You said "_soft-cut_", why is that?
 
-Each file is loaded using `require_once`, which also loads its other file links. If the last file is a class with links outside the list, these will be called to avoid unresolved dependencies.
+Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended.
 
 * Can I just put all the files in my project?
 
-Yes, but including all the files of your application may have diminishing returns compared to, for example, only the most used. You can always benchmark your app yourself. 
+You shouldn't. Including all the files of your application may have diminishing returns compared to, for example, only the most requested. You can always benchmark your app yourself to prove this is wrong.
 
 * Can I use a Closure for my condition?
 
@@ -200,9 +200,9 @@ No, you must use your the default condition class or your own class, or use `Cla
 
 Nope. If you are looking for total control, [use directly the Preloader package](https://github.com/DarkGhostHunter/Preloader/).
 
-* Does the middleware works on testing?
+* Does the middleware works on unit testing?
 
-Nope. The middleware is not registered if the application is running under Unit Testing environment.
+Nope. The middleware is not registered if the application is running under tests.
 
 * How can I know when a Preload script is successfully generated? 
 
