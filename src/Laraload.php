@@ -34,14 +34,14 @@ class Laraload
      *
      * @var callable
      */
-    protected $append = [];
+    protected $append;
 
     /**
      * Callback to use to exclude files.
      *
      * @var callable
      */
-    protected $exclude = [];
+    protected $exclude;
 
     /**
      * Laraload constructor.
@@ -85,6 +85,7 @@ class Laraload
     public function generate()
     {
         $preloader = $this->preloader
+            ->ignoreNotFound($this->config['ignore-not-found'])
             ->memoryLimit($this->config['memory'])
             ->exclude($this->exclude)
             ->append($this->append);
