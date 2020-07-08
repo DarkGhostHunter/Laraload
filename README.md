@@ -65,16 +65,11 @@ return [
     'memory' => 32,
     'use_require' => false,
     'autoload' => base_path('vendor/autoload.php'),
+    'ignore-not-found' => true,
 ];
 ```
 
 #### Condition
-
-This package comes with a _simple_ condition class that returns `true` every 500 requests, which triggers the script generation. 
-
-You can define your own condition class to generate the Preload script. This will be called after the request is handled to the browser, and it will be resolved by the Service Container.
-
-The condition is called the same way as a Controller action: as an invokable class or using _Class@action_ notation.
 
 ```php
 <?php
@@ -84,9 +79,13 @@ return [
 ];
 ```
 
+This package comes with a _simple_ condition class that returns `true` every 500 requests, which triggers the script generation. 
+
+You can define your own condition class to generate the Preload script. This will be called after the request is handled to the browser, and it will be resolved by the Service Container.
+
+The condition is called the same way as a Controller action: as an invokable class or using _Class@action_ notation.
+
 #### Output
- 
-By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it.
 
 ```php
 <?php
@@ -95,10 +94,10 @@ return [
     'output' => '/var/www/preloads/my_preload.php',
 ];
 ```
+ 
+By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it.
 
 #### Memory Limit
-
-For most applications, 32MB is fine as a preload limit, but you may fine-tune it for your project specifically.
 
 ```php
 <?php
@@ -108,15 +107,9 @@ return [
 ];
 ```
 
+For most applications, 32MB is fine as a preload limit, but you may fine-tune it for your project specifically.
+
 #### Method
-
-Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
-
-From version 2.0, Laraload now uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings, but nothing critical. 
-
-Using `require_once` will execute all files, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
-
-If you plan use `require_once`, ensure you have set the correct path to the Composer Autoloader, since it will be used to resolve classes, among other files.
 
 ```php
 <?php
@@ -126,6 +119,28 @@ return [
     'autoload' => base_path('vendor/autoload.php'),
 ];
 ```
+
+Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
+
+From version 2.0, Laraload now uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings, but nothing critical. 
+
+Using `require_once` will execute all files, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
+
+If you plan use `require_once`, ensure you have set the correct path to the Composer Autoloader, since it will be used to resolve classes, among other files.
+
+### Ignore not found files
+
+```php
+<?php
+
+return [
+    'ignore-not-found' => true,
+];
+```
+
+Version 2.1.0 and onward ignores non-existent files by default. This may work for files created by Laravel at runtime and actively cached by Opcache, but that on deployment are absent, like [real-time facades](https://laravel.com/docs/facades#real-time-facades).
+
+You can disable this for any reason, but is recommended leaving it alone unless you know what you're doing (and why).
 
 ### Include & Exclude directories
 
@@ -187,10 +202,6 @@ Basically: the most hit files in descending order. Each file consumes memory, so
 * **You said "_soft-cut_", why is that?**
 
 Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended.
-
-* **I use files generated after deploying**
-
-Version 2.1.0 and onward ignores non-existent files by default. This may work for files created by Laravel at runtime and actively cached by Opcache, but that on deployment are absent, like [real-time facades](https://laravel.com/docs/facades#real-time-facades).
 
 * **Can I just put all the files in my project?**
 

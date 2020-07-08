@@ -68,22 +68,4 @@ return [
 
     'ignore-not-found' => true,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Appended & Excluded directories
-    |--------------------------------------------------------------------------
-    |
-    | You can include or exclude directories in the Preload list as you wish.
-    | The included files won't count to the memory limit, but the excluded
-    | will subtract themselves from the memory limit of the overall list.
-    |
-    */
-
-    'append' => [
-        // 'path/to/directory'
-    ],
-
-    'exclude' => [
-        // 'path/to/directory'
-    ],
 ];
