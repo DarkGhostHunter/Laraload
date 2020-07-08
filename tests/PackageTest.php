@@ -303,8 +303,8 @@ class PackageTest extends TestCase
 
         $preloader->shouldReceive('ignoreNotFound')->with(false)->andReturnSelf();
         $preloader->shouldReceive('memoryLimit')->andReturnSelf();
-        $preloader->shouldReceive('exclude')->with('foo')->andReturnSelf();
-        $preloader->shouldReceive('append')->with('bar')->andReturnSelf();
+        $preloader->shouldReceive('exclude')->with(null)->andReturnSelf();
+        $preloader->shouldReceive('append')->with(null)->andReturnSelf();
         $preloader->shouldReceive('writeTo')->with(config('laraload.output'))->andReturnTrue();
 
         $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
