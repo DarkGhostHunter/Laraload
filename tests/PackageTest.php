@@ -175,6 +175,9 @@ class PackageTest extends TestCase
 
         $preload = $this->mock(Preloader::class);
 
+        $preload->shouldReceive('ignoreNotFound')
+            ->with(true)
+            ->andReturnSelf();
         $preload->shouldReceive('memoryLimit')
             ->with(32)
             ->andReturnSelf();
@@ -216,6 +219,7 @@ class PackageTest extends TestCase
 
         $preloader = $this->mock(Preloader::class);
 
+        $preloader->shouldReceive('ignoreNotFound')->andReturnSelf();
         $preloader->shouldReceive('memoryLimit')->andReturnSelf();
         $preloader->shouldReceive('exclude')->andReturnSelf();
         $preloader->shouldReceive('append')->andReturnSelf();
@@ -238,6 +242,7 @@ class PackageTest extends TestCase
 
         $preloader = $this->mock(Preloader::class);
 
+        $preloader->shouldReceive('ignoreNotFound')->andReturnSelf();
         $preloader->shouldReceive('memoryLimit')->andReturnSelf();
         $preloader->shouldReceive('exclude')->with('foo')->andReturnSelf();
         $preloader->shouldReceive('append')->with('bar')->andReturnSelf();
@@ -283,6 +288,29 @@ class PackageTest extends TestCase
         $i = rand(500, 599);
         Route::get('/500', fn() => response('ok', $i));
         $this->get('/500')->assertStatus($i);
+    }
+
+    public function testReceivesFalseForIgnoringNotFoundFiles()
+    {
+        $this->app->when(CountRequests::class)
+            ->needs('$hits')
+            ->give(1);
+
+        $this->app->make('config')->set('laraload.condition', CountRequests::class);
+        $this->app->make('config')->set('laraload.ignore-not-found', false);
+
+        $preloader = $this->mock(Preloader::class);
+
+        $preloader->shouldReceive('ignoreNotFound')->with(false)->andReturnSelf();
+        $preloader->shouldReceive('memoryLimit')->andReturnSelf();
+        $preloader->shouldReceive('exclude')->with(null)->andReturnSelf();
+        $preloader->shouldReceive('append')->with(null)->andReturnSelf();
+        $preloader->shouldReceive('writeTo')->with(config('laraload.output'))->andReturnTrue();
+
+        $this->app[Kernel::class]->pushMiddleware(LaraloadMiddleware::class);
+
+        Route::get('/test', fn() => response('ok'));
+        $this->get('/test')->assertStatus(200);
     }
 
     protected function tearDown() : void
