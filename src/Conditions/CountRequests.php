@@ -40,11 +40,10 @@ class CountRequests
      * @param  int  $hits
      * @param  string  $cacheKey
      */
-    public function __construct(Cache $cache, int $hits = 500, string $cacheKey = 'laraload|request_hits')
+    public function __construct(Cache $cache, Config $config)
     {
         $this->cache = $cache;
-        $this->hits = $hits;
-        $this->cacheKey = $cacheKey;
+        $this->config = $config;
     }
 
     /**
@@ -54,10 +53,19 @@ class CountRequests
      */
     public function __invoke()
     {
+        $this->hits = $this->config->get('laraload.hits', 500);
+        $this->cacheKey = $this->config->get('laraload.cache_key', 'laraload|request_hits');
+
         // Increment the count by one. If it doesn't exists, we will start with 1.
         $count = $this->cache->increment($this->cacheKey);
 
         // Each number of hits return true
-        return $count && $count % $this->hits === 0;
+        $status = $count && ( $count > $this->hits );
+
+        // Reset counter to zero
+        if($status){
+            $this->cache->put($this->cacheKey, 0);
+        }
+        return $status;
     }
 }
