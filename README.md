@@ -12,7 +12,7 @@ Effortlessly create a PHP 7.4 Preload script for your Laravel project.
 ## Requirements
 
 * Laravel 6 or Laravel 7
-* PHP 7.4.3 or later
+* PHP 8, PHP 7.4.3 or later
 * `ext-opcache`
 
 > The Opcache extension is not enforced by the package. Just be sure to enable it in your project's PHP main process.
@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP 8, PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
 
