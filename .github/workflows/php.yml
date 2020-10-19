@@ -12,9 +12,11 @@ jobs:
       fail-fast: true
       matrix:
         php: [7.4]
-        laravel: [7.*, 6.*]
+        laravel: [8.*, 7.*, 6.*]
         dependency-version: [prefer-stable, prefer-lowest]
         include:
+          - laravel: 8.*
+            testbench: 6.*
           - laravel: 7.*
             testbench: 5.*
           - laravel: 6.*
