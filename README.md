@@ -11,7 +11,7 @@ Effortlessly create a PHP 7.4 Preload script for your Laravel project.
 
 ## Requirements
 
-* Laravel 6 or Laravel 7
+* Laravel 6, Laravel 7 or Laravel 8
 * PHP 8, PHP 7.4.3 or later
 * `ext-opcache`
 
