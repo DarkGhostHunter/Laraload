@@ -11,8 +11,8 @@ Effortlessly create a PHP 7.4 Preload script for your Laravel project.
 
 ## Requirements
 
-* Laravel 6 or Laravel 7
-* PHP 7.4.3 or later
+* Laravel 6.x, 7.x or 8.x
+* PHP 7.4.3, PHP 8.0 or later
 * `ext-opcache`
 
 > The Opcache extension is not enforced by the package. Just be sure to enable it in your project's PHP main process.
@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP 8, PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
 
@@ -228,6 +228,16 @@ If there is a bigger problem, your application logger will catch the exception.
 * **Why now I need to use a callback to append/exclude files, instead of a simple array of files?**
 
 This new version uses Preloader 2, which offers greater flexibility to handle files inside a directory. This approach is incompatible with just issuing directly an array of files, but is more convenient in the long term. Considering that appending and excluding files mostly requires pin-point precision, it was decided to leave it as method calls for this kind of flexibility.
+
+* **How can I change the number of hits, cache or cache key for the default condition?**
+
+While I encourage you to create your own, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
+
+```php
+$this->app->when(\DarkGhostHunter\Laraload\Conditions\CountRequests::class)
+     ->needs('$hits')
+     ->give(1500);
+```
 
 ## License
 

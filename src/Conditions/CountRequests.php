@@ -3,7 +3,6 @@
 namespace DarkGhostHunter\Laraload\Conditions;
 
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Contracts\Config\Repository as Config;
 
 class CountRequests
 {
@@ -13,13 +12,6 @@ class CountRequests
      * @var \Illuminate\Contracts\Cache\Repository
      */
     protected Cache $cache;
-
-    /**
-     * Configuration repository
-     *
-     * @var \Illuminate\Contracts\Config\Repository
-     */
-    protected Config $config;
 
     /**
      * Number of hits to
@@ -58,6 +50,11 @@ class CountRequests
         $count = $this->cache->increment($this->cacheKey);
 
         // Each number of hits return true
-        return $count && $count % $this->hits === 0;
+        if ($count && $count % $this->hits === 0) {
+            $this->cache->set($this->cacheKey, 0);
+            return true;
+        }
+
+        return false;
     }
 }
