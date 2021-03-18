@@ -229,6 +229,16 @@ If there is a bigger problem, your application logger will catch the exception.
 
 This new version uses Preloader 2, which offers greater flexibility to handle files inside a directory. This approach is incompatible with just issuing directly an array of files, but is more convenient in the long term. Considering that appending and excluding files mostly requires pin-point precision, it was decided to leave it as method calls for this kind of flexibility.
 
+* **How can I change the number of hits, cache or cache key for the default condition?**
+
+While I encourage you to create your own, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
+
+```php
+$this->app->when(\DarkGhostHunter\Laraload\Conditions\CountRequests::class)
+     ->needs('$hits')
+     ->give(1500);
+```
+
 ## License
 
 This package is licenced by the [MIT License](LICENSE).

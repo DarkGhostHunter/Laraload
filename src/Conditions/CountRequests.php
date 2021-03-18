@@ -58,6 +58,11 @@ class CountRequests
         $count = $this->cache->increment($this->cacheKey);
 
         // Each number of hits return true
-        return $count && $count % $this->hits === 0;
+        if ($count && $count % $this->hits === 0) {
+            $this->cache->set($this->cacheKey, 0);
+            return true;
+        }
+
+        return false;
     }
 }
