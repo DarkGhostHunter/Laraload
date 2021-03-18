@@ -35,6 +35,8 @@ This package wraps the Preloader package that generates a preload file. Once it'
 opcache.preload = 'www/app/storage/preload.php';
 ```
 
+After that, **RESTART PHP**.
+
 ## Usage
 
 By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
@@ -173,9 +175,13 @@ class AppServiceProvider extends ServiceProvider
 
 ### FAQ
 
+* **Do I need to restart my PHP Server to pick up the changes?**
+
+Absolutely. Generating the script is not enough, PHP won't pick up the changes if the script path is empty or the PHP process itself is not restarted **completely**. You can schedule a server restart with CRON or something.
+
 * **The package returns errors when I used it!**
   
-Check you're using latest PHP 7.4 version (critical), and Opcache is enabled. Also, check your storage directory is writable.
+Check you're using the latest PHP stable versions (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
 As a safe-bet, you can use the safe preloader script in `darkghosthunter/preloader/helpers/safe-preloader.php` and debug the error.
 
@@ -183,7 +189,7 @@ If you're sure this is an error by the package, [open an issue](https://github.c
 
 * **Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?**
 
-Opcache is not enabled when using PHP CLI. You must let the live application generate the list automatically _on demand_.
+Opcache is not enabled when using PHP CLI, and if you do, it will gather wrong statistics. You must let the live application generate the list automatically _on demand_.
 
 * **Does this excludes the package itself from the list?**
 
@@ -193,7 +199,7 @@ It does not: since the underlying Preloader package may be not heavily requested
 
 Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it. This will take effect only at PHP process startup.
 
-If you still _feel_ your app is slow, remember to benchmark your app, cache your config and views, check your database queries and API calls, and queue expensive logic, among other things.
+If you still _feel_ your app is slow, remember to benchmark your app, cache your config and views, check your database queries and API calls, and queue expensive logic, among other things. You can also use [Laravel Octane](https://github.com/laravel/octane) on [RoadRunner](https://roadrunner.dev/).
 
 * **How the list is created?**
 
@@ -201,7 +207,7 @@ Basically: the most hit files in descending order. Each file consumes memory, so
 
 * **You said "_soft-cut_", why is that?**
 
-Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended.
+Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended, but it won't compile the linked files if these were not added before. 
 
 * **Can I just put all the files in my project?**
 
@@ -209,7 +215,7 @@ You shouldn't. Including all the files of your application may have diminishing 
 
 * **Can I use a Closure for my condition?**
 
-No, you must use your the default condition class or your own class, or use `Class@method` notation.
+No, you must use your default condition class or your own class, or use `Class@method` notation.
 
 * **Can I deactivate the middleware? Or check only XXX status?**
 
@@ -231,7 +237,7 @@ This new version uses Preloader 2, which offers greater flexibility to handle fi
 
 * **How can I change the number of hits, cache or cache key for the default condition?**
 
-While I encourage you to create your own, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
+While I encourage you to create your own condition, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
 
 ```php
 $this->app->when(\DarkGhostHunter\Laraload\Conditions\CountRequests::class)
