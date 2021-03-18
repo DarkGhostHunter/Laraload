@@ -18,8 +18,7 @@
     "require": {
         "php": "^7.4.3||^8.0.2",
         "illuminate/support": "^6.0||^7.0||^8.0",
-        "illuminate/contracts": "^6.0||^7.0||^8.0",
-        "darkghosthunter/preloader": "^3.0.0",
+        "darkghosthunter/preloader": "^2.2.0",
         "symfony/finder": "^4.3|^5.0"
     },
     "require-dev": {
