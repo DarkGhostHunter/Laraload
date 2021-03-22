@@ -7,7 +7,7 @@
 
 # Laraload
 
-Effortlessly create a PHP 7.4 Preload script for your Laravel project.
+Effortlessly create a PHP Preload Script for your Laravel project.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 8, PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that "uploads" these files into memory, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
 
@@ -43,8 +43,8 @@ By default, this package constantly recreates your preload script each 500 reque
 
 1. A global terminable middleware checks for non-error response.
 2. Then it calls a custom *Condition* class.
-3. If the *Condition* evaluates to `true`, the script is generated.
-4. A `PreloadCalledEvent` is called with the generation status.
+3. If the *Condition* evaluates to `true`, the Preload Script is generated.
+4. A `PreloadCalledEvent` is fired with the generation status.
 
 ## Configuration
 
@@ -56,7 +56,7 @@ First publish the configuration file:
 php artisan vendor:publish --provider="DarkGhostHunter\Laraload\LaraloadServiceProvider"
 ```
 
-Let's check config array:
+Let's check the config array:
 
 ```php
 <?php
@@ -97,7 +97,7 @@ return [
 ];
 ```
  
-By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it.
+By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it. Double-check your file permissions.
 
 #### Memory Limit
 
@@ -124,9 +124,9 @@ return [
 
 Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
 
-From version 2.0, Laraload now uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings, but nothing critical. 
+Laraload uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings at startup, but nothing critical.
 
-Using `require_once` will execute all files, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
+Using `require_once` will "execute" all files, resolving all the links (imports, parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
 
 If you plan use `require_once`, ensure you have set the correct path to the Composer Autoloader, since it will be used to resolve classes, among other files.
 
@@ -142,7 +142,7 @@ return [
 
 Version 2.1.0 and onward ignores non-existent files by default. This may work for files created by Laravel at runtime and actively cached by Opcache, but that on deployment are absent, like [real-time facades](https://laravel.com/docs/facades#real-time-facades).
 
-You can disable this for any reason, but is recommended leaving it alone unless you know what you're doing (and why).
+You can disable this for any reason, which will throw an Exception if any file is missing, but is recommended leaving it alone unless you know what you're doing. 
 
 ### Include & Exclude directories
 
@@ -189,7 +189,7 @@ If you're sure this is an error by the package, [open an issue](https://github.c
 
 * **Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?**
 
-Opcache is not enabled when using PHP CLI, and if you do, it will gather wrong statistics. You must let the live application generate the list automatically _on demand_.
+Opcache is not enabled when using PHP CLI, and if it is, it will gather wrong statistics. You must let the live application generate the list automatically _on demand_.
 
 * **Does this excludes the package itself from the list?**
 
