@@ -2,6 +2,7 @@
 
 namespace DarkGhostHunter\Laraload;
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use DarkGhostHunter\Preloader\Preloader;
@@ -25,13 +26,15 @@ class LaraloadServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      *
-     * @param  \Illuminate\Contracts\Http\Kernel $kernel
+     * @param  \Illuminate\Config\Repository  $config
+     * @param  \Illuminate\Contracts\Http\Kernel  $kernel
+     *
      * @return void
      */
-    public function boot(Kernel $kernel)
+    public function boot(Repository $config, Kernel $kernel)
     {
         // We will only register the middleware if not Running Unit Tests
-        if (! $this->app->runningUnitTests()) {
+        if ($this->shouldRun($config)) {
             $kernel->pushMiddleware(LaraloadMiddleware::class);
         }
 
@@ -40,5 +43,22 @@ class LaraloadServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/laraload.php' => config_path('laraload.php'),
             ], 'config');
         }
+    }
+
+    /**
+     * Checks if Laraload should run.
+     *
+     * @param  \Illuminate\Config\Repository  $config
+     *
+     * @return bool
+     *
+     * @codeCoverageIgnore
+     */
+    protected function shouldRun(Repository $config): bool
+    {
+        // If it's null run only on production, otherwise the developer decides.
+        return ($shouldRun = $config->get('laraload.enable')) === null
+                    ? $this->app->environment('production')
+                    : $shouldRun;
     }
 }

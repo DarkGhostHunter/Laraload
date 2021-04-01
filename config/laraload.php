@@ -4,6 +4,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Main Switch
+    |--------------------------------------------------------------------------
+    |
+    | Laraload detects if the environment is production and automatically runs
+    | when under it. You can forcefully disable o enable it. Laraload doesn't
+    | runs if your app is running unit tests, don't worry about disabling it.
+    |
+    | Supported: "null", "true", "false".
+    |
+    */
+
+    'enable' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Condition logic
     |--------------------------------------------------------------------------
     |

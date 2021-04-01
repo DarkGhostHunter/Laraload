@@ -62,6 +62,7 @@ Let's check config array:
 <?php
 
 return [
+    'enable' => null,
     'condition' => \DarkGhostHunter\Laraload\Conditions\CountRequests::class,
     'output' =>  storage_path('preload.php'),
     'memory' => 32,
@@ -70,6 +71,21 @@ return [
     'ignore-not-found' => true,
 ];
 ```
+
+#### Enable
+
+```php
+<?php
+
+return [
+    'enable' => null,
+];
+```
+
+Laraload won't register the middleware to create the script on non-production environments, like unit testing or local development, when `enable` is `null`.
+
+You can forcefully enable (or disable) Laraload under any environment setting it to `true` or `false`.
+
 
 #### Condition
 
@@ -175,13 +191,17 @@ class AppServiceProvider extends ServiceProvider
 
 ### FAQ
 
+* **Can I disable Laraload?**
+
+[Yes.](#enable)
+
 * **Do I need to restart my PHP Server to pick up the changes?**
 
 Absolutely. Generating the script is not enough, PHP won't pick up the changes if the script path is empty or the PHP process itself is not restarted **completely**. You can schedule a server restart with CRON or something.
 
 * **The package returns errors when I used it!**
   
-Check you're using the latest PHP stable versions (critical), and Opcache is enabled. Also, check your storage directory is writable.
+Check you're using the latest PHP stable version (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
 As a safe-bet, you can use the safe preloader script in `darkghosthunter/preloader/helpers/safe-preloader.php` and debug the error.
 
