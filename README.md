@@ -7,7 +7,7 @@
 
 # Laraload
 
-Effortlessly create a PHP 7.4 Preload script for your Laravel project.
+Effortlessly create a PHP Preload Script for your Laravel project.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP 8, PHP 7.4 and Opcache. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that uploads the files, at startup.
+Preloading is a new feature for PHP. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that "uploads" these files into memory, at startup.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
 
@@ -35,14 +35,16 @@ This package wraps the Preloader package that generates a preload file. Once it'
 opcache.preload = 'www/app/storage/preload.php';
 ```
 
+After that, **RESTART PHP**.
+
 ## Usage
 
 By default, this package constantly recreates your preload script each 500 requests in `storage/preload.php`. That's it. But you want the details, don't you?
 
 1. A global terminable middleware checks for non-error response.
 2. Then it calls a custom *Condition* class.
-3. If the *Condition* evaluates to `true`, the script is generated.
-4. A `PreloadCalledEvent` is called with the generation status.
+3. If the *Condition* evaluates to `true`, the Preload Script is generated.
+4. A `PreloadCalledEvent` is fired with the generation status.
 
 ## Configuration
 
@@ -54,12 +56,13 @@ First publish the configuration file:
 php artisan vendor:publish --provider="DarkGhostHunter\Laraload\LaraloadServiceProvider"
 ```
 
-Let's check config array:
+Let's check the config array:
 
 ```php
 <?php
 
 return [
+    'enable' => null,
     'condition' => \DarkGhostHunter\Laraload\Conditions\CountRequests::class,
     'output' =>  storage_path('preload.php'),
     'memory' => 32,
@@ -68,6 +71,21 @@ return [
     'ignore-not-found' => true,
 ];
 ```
+
+#### Enable
+
+```php
+<?php
+
+return [
+    'enable' => null,
+];
+```
+
+Laraload won't register the middleware to create the script on non-production environments, like unit testing or local development, when `enable` is `null`.
+
+You can forcefully enable (or disable) Laraload under any environment setting it to `true` or `false`.
+
 
 #### Condition
 
@@ -95,7 +113,7 @@ return [
 ];
 ```
  
-By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it.
+By default, the script is saved in your storage path, but you can change the filename and path to save it as long PHP has permissions to write on it. Double-check your file permissions.
 
 #### Memory Limit
 
@@ -122,9 +140,9 @@ return [
 
 Opcache allows to preload files using `require_once` or `opcache_compile_file()`.
 
-From version 2.0, Laraload now uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings, but nothing critical. 
+Laraload uses `opcache_compile_file()` for better manageability on the files preloaded. Some unresolved links may output warnings at startup, but nothing critical.
 
-Using `require_once` will execute all files, resolving all the links (parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
+Using `require_once` will "execute" all files, resolving all the links (imports, parent classes, traits, interfaces, etc.) before compiling it, and may output heavy errors on files that shouldn't be executed. Depending on your application, you may want to use one over the other.
 
 If you plan use `require_once`, ensure you have set the correct path to the Composer Autoloader, since it will be used to resolve classes, among other files.
 
@@ -140,7 +158,7 @@ return [
 
 Version 2.1.0 and onward ignores non-existent files by default. This may work for files created by Laravel at runtime and actively cached by Opcache, but that on deployment are absent, like [real-time facades](https://laravel.com/docs/facades#real-time-facades).
 
-You can disable this for any reason, but is recommended leaving it alone unless you know what you're doing (and why).
+You can disable this for any reason, which will throw an Exception if any file is missing, but is recommended leaving it alone unless you know what you're doing. 
 
 ### Include & Exclude directories
 
@@ -173,9 +191,17 @@ class AppServiceProvider extends ServiceProvider
 
 ### FAQ
 
+* **Can I disable Laraload?**
+
+[Yes.](#enable)
+
+* **Do I need to restart my PHP Server to pick up the changes?**
+
+Absolutely. Generating the script is not enough, PHP won't pick up the changes if the script path is empty or the PHP process itself is not restarted **completely**. You can schedule a server restart with CRON or something.
+
 * **The package returns errors when I used it!**
   
-Check you're using latest PHP 7.4 version (critical), and Opcache is enabled. Also, check your storage directory is writable.
+Check you're using the latest PHP stable version (critical), and Opcache is enabled. Also, check your storage directory is writable.
 
 As a safe-bet, you can use the safe preloader script in `darkghosthunter/preloader/helpers/safe-preloader.php` and debug the error.
 
@@ -183,7 +209,7 @@ If you're sure this is an error by the package, [open an issue](https://github.c
 
 * **Why I can't use something like `php artisan laraload:generate` instead? Like a [Listener](https://laravel.com/docs/events) or [Scheduler](https://laravel.com/docs/scheduling)?**
 
-Opcache is not enabled when using PHP CLI. You must let the live application generate the list automatically _on demand_.
+Opcache is not enabled when using PHP CLI, and if it is, it will gather wrong statistics. You must let the live application generate the list automatically _on demand_.
 
 * **Does this excludes the package itself from the list?**
 
@@ -193,7 +219,7 @@ It does not: since the underlying Preloader package may be not heavily requested
 
 Laraload creates a preloading script, but **doesn't load the script into Opcache**. Once the script is generated, you must include it in your `php.ini` - currently there is no other way to do it. This will take effect only at PHP process startup.
 
-If you still _feel_ your app is slow, remember to benchmark your app, cache your config and views, check your database queries and API calls, and queue expensive logic, among other things.
+If you still _feel_ your app is slow, remember to benchmark your app, cache your config and views, check your database queries and API calls, and queue expensive logic, among other things. You can also use [Laravel Octane](https://github.com/laravel/octane) on [RoadRunner](https://roadrunner.dev/).
 
 * **How the list is created?**
 
@@ -201,7 +227,7 @@ Basically: the most hit files in descending order. Each file consumes memory, so
 
 * **You said "_soft-cut_", why is that?**
 
-Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended.
+Each file is loaded using `opcache_compile_file()`. If the last file is a class with links outside the list, PHP will issue some warnings, which is normal and intended, but it won't compile the linked files if these were not added before. 
 
 * **Can I just put all the files in my project?**
 
@@ -209,7 +235,7 @@ You shouldn't. Including all the files of your application may have diminishing 
 
 * **Can I use a Closure for my condition?**
 
-No, you must use your the default condition class or your own class, or use `Class@method` notation.
+No, you must use your default condition class or your own class, or use `Class@method` notation.
 
 * **Can I deactivate the middleware? Or check only XXX status?**
 
@@ -231,7 +257,7 @@ This new version uses Preloader 2, which offers greater flexibility to handle fi
 
 * **How can I change the number of hits, cache or cache key for the default condition?**
 
-While I encourage you to create your own, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
+While I encourage you to create your own condition, you can easily change them by adding a [container event](https://laravel.com/docs/8.x/container#container-events) to your `AppServiceProvider.php`, under the `register()` method.
 
 ```php
 $this->app->when(\DarkGhostHunter\Laraload\Conditions\CountRequests::class)
