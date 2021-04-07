@@ -80,11 +80,6 @@ class LaraloadMiddleware
      */
     protected function conditionIsTrue(): bool
     {
-        $callable = $this->config->get('laraload.condition');
-
-        // If the callable is a class name, we will use call with invocation.
-        return class_exists($callable) && is_callable($callable)
-            ? $this->container->call($callable, [], '__invoke')
-            : $this->container->call($callable);
+        return (bool)$this->container->call($this->config->get('laraload.condition'), [], '__invoke');
     }
 }
