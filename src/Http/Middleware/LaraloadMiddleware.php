@@ -15,12 +15,20 @@ class LaraloadMiddleware
     protected Config $config;
 
     /**
+     * Application container instance.
+     *
+     * @var \Illuminate\Container\Container
+     */
+    protected Container $container;
+
+    /**
      * CountRequest constructor.
      *
      * @param  \Illuminate\Config\Repository  $config
      */
     public function __construct(Config $config)
     {
+        $this->container = Container::getInstance();
         $this->config = $config;
     }
 
@@ -72,6 +80,6 @@ class LaraloadMiddleware
      */
     protected function conditionIsTrue(): bool
     {
-        return (bool)Container::getInstance()->call($this->config->get('laraload.condition'));
+        return (bool)$this->container->call($this->config->get('laraload.condition'));
     }
 }
