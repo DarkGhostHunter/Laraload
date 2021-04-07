@@ -44,7 +44,7 @@ class CountRequests
      *
      * @return bool
      */
-    public function __invoke()
+    public function __invoke(): bool
     {
         // Increment the count by one. If it doesn't exists, we will start with 1.
         $count = $this->cache->increment($this->cacheKey);

@@ -3,7 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/darkghosthunter/laraload.svg?style=flat-square)](https://packagist.org/packages/darkghosthunter/laraload) [![License](https://poser.pugx.org/darkghosthunter/laraload/license)](https://packagist.org/packages/darkghosthunter/laraload)
 ![](https://img.shields.io/packagist/php-v/darkghosthunter/laraload.svg)
  ![](https://github.com/DarkGhostHunter/Laraload/workflows/PHP%20Composer/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/DarkGhostHunter/Laraload/badge.svg?branch=master)](https://coveralls.io/github/DarkGhostHunter/Laraload?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/DarkGhostHunter/Laraload/badge.svg?branch=master)](https://coveralls.io/github/DarkGhostHunter/Laraload?branch=master) [![Laravel Octane Compatible](https://img.shields.io/badge/Laravel%20Octane-Compatible-success?style=flat&logo=laravel)](https://github.com/laravel/octane)
 
 # Laraload
 
@@ -62,7 +62,7 @@ Let's check the config array:
 <?php
 
 return [
-    'enable' => null,
+    'enable' => env('LARALOAD_ENABLE'),
     'condition' => \DarkGhostHunter\Laraload\Conditions\CountRequests::class,
     'output' =>  storage_path('preload.php'),
     'memory' => 32,
@@ -78,14 +78,15 @@ return [
 <?php
 
 return [
-    'enable' => null,
+    'enable' => env('LARALOAD_ENABLE'),
 ];
 ```
 
-Laraload won't register the middleware to create the script on non-production environments, like unit testing or local development, when `enable` is `null`.
+By default, Laraload will be automatically enabled on production environments. You can forcefully enable or disable it using an environment variable set to `true` or `false`, respectively.
 
-You can forcefully enable (or disable) Laraload under any environment setting it to `true` or `false`.
-
+```dotenv
+LARALOAD_ENABLE=true
+```
 
 #### Condition
 
