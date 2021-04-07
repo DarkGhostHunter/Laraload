@@ -39,9 +39,7 @@ class LaraloadServiceProvider extends ServiceProvider
         }
 
         if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__ . '/../config/laraload.php' => config_path('laraload.php'),
-            ], 'config');
+            $this->publishes([__DIR__ . '/../config/laraload.php' => config_path('laraload.php')], 'config');
         }
     }
 
@@ -57,8 +55,6 @@ class LaraloadServiceProvider extends ServiceProvider
     protected function shouldRun(Repository $config): bool
     {
         // If it's null run only on production, otherwise the developer decides.
-        return ($shouldRun = $config->get('laraload.enable')) === null
-                    ? $this->app->environment('production')
-                    : $shouldRun;
+        return $config->get('laraload.enable') ?? $this->app->environment('production');
     }
 }
