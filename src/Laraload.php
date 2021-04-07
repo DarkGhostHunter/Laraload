@@ -61,8 +61,10 @@ class Laraload
      * Registers a callback to use to append files to the Preloader.
      *
      * @param  array|string|callable  $append
+     *
+     * @return void
      */
-    public function append($append)
+    public function append($append): void
     {
         $this->append = $append;
     }
@@ -71,8 +73,10 @@ class Laraload
      * Registers a callback to use to exclude files from the Preloader.
      *
      * @param  array|string|callable  $exclude
+     *
+     * @return void
      */
-    public function exclude($exclude)
+    public function exclude($exclude): void
     {
         $this->exclude = $exclude;
     }
@@ -82,7 +86,7 @@ class Laraload
      *
      * @return bool
      */
-    public function generate()
+    public function generate(): bool
     {
         $preloader = $this->preloader
             ->ignoreNotFound($this->config['ignore-not-found'])
