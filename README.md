@@ -11,7 +11,7 @@ Effortlessly create a PHP Preload Script for your Laravel project.
 
 ## Requirements
 
-* Laravel 6.x, 7.x or 8.x
+* Laravel 6.x, 7.x or 8.x (Lumen _may_ work too)
 * PHP 7.4.3, PHP 8.0 or later
 * `ext-opcache`
 
@@ -27,7 +27,9 @@ composer require darkghosthunter/laraload
 
 ## What is Preloading? What does this?
 
-Preloading is a new feature for PHP. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that "uploads" these files into memory, at startup.
+Preloading is a new feature for PHP. It "compiles" a list of files into memory, thus making the application code _fast_ without warming up. For that to work, it needs to read a PHP script that "uploads" these files into memory, at process startup.
+
+This allows the first Requests to avoid cold starts, where all the scripts must be loaded by PHP at that moment. Since this step is moved to the process startup, first Requests become _faster_ as all needed scripts are already in memory.
 
 This package wraps the Preloader package that generates a preload file. Once it's generated, you can point the generated list into your `php.ini`:
 
@@ -35,7 +37,7 @@ This package wraps the Preloader package that generates a preload file. Once it'
 opcache.preload = 'www/app/storage/preload.php';
 ```
 
-After that, **RESTART PHP**.
+After that, the next time PHP starts, this list of files will be preloaded.
 
 ## Usage
 
