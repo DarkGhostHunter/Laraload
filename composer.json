@@ -15,6 +15,7 @@
             "role": "Developer"
         }
     ],
+    "abandoned": "laragear/preload",
     "require": {
         "php": "^7.4.3||^8.0.2",
         "illuminate/support": "^6.0||^7.0||^8.0",
