@@ -1,3 +1,9 @@
+# Package superseded by [Laragear/Preload](https://github.com/Laragear/Preload)
+
+The new package offers better functionality, testing, and latest Laravel support.
+
+---
+
 ![Goh Rhy Yan - Unsplash #y8CtjK0ej6A](https://images.unsplash.com/photo-1496327249223-c84a3c1db090?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=400&q=80)
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/darkghosthunter/laraload.svg?style=flat-square)](https://packagist.org/packages/darkghosthunter/laraload) [![License](https://poser.pugx.org/darkghosthunter/laraload/license)](https://packagist.org/packages/darkghosthunter/laraload)
